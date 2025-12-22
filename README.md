@@ -21,6 +21,14 @@ You can :
 
 Currently, this program runs as a CLI (Command Line Interface), but I may change this at some point to a GUI (Graphical User Interface).
 
+## Why not directly use the complete type chart?
+
+I think that using the entire type chart is:
+1) Very hard to read and may confuse you more than anything else.
+2) May spoil you on new types.
+
+I also think that building the type chart as you are playing through the game is pretty fun :).
+
 ## How to run the program
 
 As of now, you need cargo to run this program. You can simply enter this command to launch the program with the default settings :
@@ -31,3 +39,19 @@ The program stores the type chart in a csv file. This is by default the "example
 ```bash
 cargo run -- -f filename
 ```
+
+## What's next?
+
+There are 2 imporvements to do after the main features of the tracker :
+
+### Generate an image or equivalent to see the entire type chart
+
+I'm not sure yet how I want the image to look like. It needs to be simple and readable. Maybe something similar to this :
+
+![Pokemon Type Chart](https://i.imgur.com/RF8KGiy.png)
+
+### Remove Cargo as a necessity to use the app
+
+To do this, I either:
+- Provide pre-compiled binaries
+- Use Docker to build the app and then extract the compiled binary
