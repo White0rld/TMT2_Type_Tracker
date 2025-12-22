@@ -7,8 +7,7 @@ mod type_chart;
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
-    /// Name of the person to greet
-    #[arg(short, long, default_value_t = String::from("types.csv"))]
+    #[arg(short, long, default_value_t = String::from("examples/types.csv"))]
     filepath: String,
 }
 
@@ -65,14 +64,13 @@ fn main() -> Result<(), i32> {
     let mut quit: bool = false;
     let mut user_input = String::new();
     let mut type_chart = files::get_types_from_file(&args.filepath).map_err(|()| 1)?;
-    dbg!(&type_chart);
     while !quit {
         // Show user the available options
         println!("Welcome to the TMT2 Type Track!");
         println!("What would you like to do?");
         println!("1: Add a new type");
         println!("2: Remove an existing type");
-        println!("3: Add a new weakness/resistance (not implemented)");
+        println!("3: Add a new weakness/resistance");
         println!("4: See stats about a type (not implemented)");
         println!("5: Quit");
 
