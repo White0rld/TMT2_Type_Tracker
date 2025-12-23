@@ -1,4 +1,19 @@
-Normal,Fighting,Psychic
-Neutral,Neutral,?
-Super Effective,Neutral,Not Very Effective
-?,Super Effective,?
+Normal,Fighting,Psychic,Grass,Bug,Water,Dark,Fairy,Dragon,Poison,Rock,Ground,Electric,Ghost,Flying,Steel,Ice,Fire
+Neutral,Neutral,Neutral,Neutral,Neutral,Neutral,Neutral,Neutral,Neutral,Neutral,Not Very Effective,Neutral,Neutral,Immune,Neutral,Not Very Effective,Neutral,Neutral
+Super Effective,Neutral,Not Very Effective,Neutral,Not Very Effective,Neutral,Super Effective,Not Very Effective,Neutral,Not Very Effective,Super Effective,Neutral,Neutral,Immune,Not Very Effective,Super Effective,Super Effective,Neutral
+Neutral,Super Effective,Not Very Effective,Neutral,Neutral,Neutral,Immune,Neutral,Neutral,Super Effective,Neutral,Neutral,Neutral,Neutral,Neutral,Not Very Effective,Neutral,Neutral
+Neutral,Neutral,Neutral,Not Very Effective,Not Very Effective,Super Effective,Neutral,Neutral,Not Very Effective,Not Very Effective,Super Effective,Super Effective,Neutral,Neutral,Not Very Effective,Not Very Effective,Neutral,Not Very Effective
+Neutral,Not Very Effective,Super Effective,Super Effective,Neutral,Neutral,Super Effective,Not Very Effective,Neutral,Not Very Effective,Neutral,Neutral,Neutral,Not Very Effective,Not Very Effective,Not Very Effective,Neutral,Not Very Effective
+Neutral,Neutral,Neutral,Not Very Effective,Neutral,Not Very Effective,Neutral,Neutral,Not Very Effective,Neutral,Super Effective,Super Effective,Neutral,Neutral,Neutral,Neutral,Neutral,Super Effective
+Neutral,Not Very Effective,Super Effective,Neutral,Neutral,Neutral,Not Very Effective,Not Very Effective,Neutral,Neutral,Neutral,Neutral,Neutral,Super Effective,Neutral,Neutral,Neutral,Neutral
+Neutral,Super Effective,Neutral,Neutral,Neutral,Neutral,Super Effective,Neutral,Super Effective,Not Very Effective,Neutral,Neutral,Neutral,Neutral,Neutral,Not Very Effective,Neutral,Not Very Effective
+Neutral,Neutral,Neutral,Neutral,Neutral,Neutral,Neutral,Immune,Super Effective,Neutral,Neutral,Neutral,Neutral,Neutral,Neutral,Not Very Effective,Neutral,Neutral
+Neutral,Neutral,Neutral,Super Effective,Neutral,Neutral,Neutral,Super Effective,Neutral,Not Very Effective,Not Very Effective,Not Very Effective,Neutral,Not very Effective,Neutral,Immune,Neutral,Neutral
+Neutral,Not Very Effective,Neutral,Neutral,Super Effective,Neutral,Neutral,Neutral,Neutral,Neutral,Neutral,Not Very Effective,Neutral,Neutral,Super Effective,Not Very Effective,Super Effective,Super Effective
+Neutral,Neutral,Neutral,Not Very Effective,Not Very Effective,Neutral,Neutral,Neutral,Neutral,Super Effective,Super Effective,Neutral,Super Effective,Neutral,Immune,Super Effective,Neutral,Super Effective
+Neutral,Neutral,Neutral,Not Very Effective,Neutral,Super Effective,Neutral,Neutral,Not Very Effective,Neutral,Neutral,Immune,Not Very Effective,Neutral,Super Effective,Neutral,Neutral,Neutral
+Immune,Neutral,Super Effective,Neutral,Neutral,Neutral,Not Very Effective,Neutral,Neutral,Neutral,Neutral,Neutral,Neutral,Super Effective,Neutral,Neutral,Neutral,Neutral
+Neutral,Super Effective,Neutral,Super Effective,Super Effective,Neutral,Neutral,Neutral,Neutral,Neutral,Not Very Effective,Neutral,Not Very Effective,Neutral,Neutral,Not Very Effective,Neutral,Neutral
+Neutral,Neutral,Neutral,Neutral,Neutral,Not Very Effective,Neutral,Super Effective,Neutral,Neutral,Super Effective,Neutral,Not Very Effective,Neutral,Neutral,Not Very Effective,Super Effective,Not Very Effective
+Neutral,Neutral,Neutral,Super Effective,Neutral,Not Very Effective,Neutral,Neutral,Super Effective,Neutral,Neutral,Super Effective,Neutral,Neutral,Super Effective,Not Very Effective,Not Very Effective,Not Very Effective
+Neutral,Neutral,Neutral,Super Effective,Super Effective,Not Very Effective,Neutral,Neutral,Not Very Effective,Neutral,Not Very Effective,Neutral,Neutral,Neutral,Neutral,Super Effective,Super Effective,Not Very Effective
