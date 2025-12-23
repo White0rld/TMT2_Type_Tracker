@@ -16,7 +16,7 @@ You can :
 - [x] Add new types
 - [x] Remove existing types (in case you make a typo)
 - [x] Add a new weakness/resistance
-- [ ] See what a type is weak to/resists
+- [x] See what a type is weak to/resists
 - [ ] See what multiple types are weak to/resists
 
 Currently, this program runs as a CLI (Command Line Interface), but I may change this at some point to a GUI (Graphical User Interface).

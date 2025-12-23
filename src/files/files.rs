@@ -80,7 +80,7 @@ pub fn get_types_from_file(filepath: &String) -> Result<TypeChart, ()> {
     return Ok(TypeChart::new(hashmap, type_list));
 }
 
-pub fn save_types_to_file(type_chart: TypeChart, filepath: &String) -> Result<(), ()> {
+pub fn save_types_to_file(type_chart: &TypeChart, filepath: &String) -> Result<(), ()> {
     if type_chart.is_empty() {
         if let Err(err) = std::fs::File::create(filepath) {
             eprintln!("Could not create file to store empty type chart :");

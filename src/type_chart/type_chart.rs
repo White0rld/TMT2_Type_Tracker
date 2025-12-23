@@ -30,6 +30,11 @@ impl TypeChart {
     }
 
     pub fn add_new_type(&mut self, type_name: &String) {
+        // Check id the type already is in the list
+        if self.type_list.contains(type_name) {
+            eprintln!("Type is already in the type chart");
+            return;
+        }
         self.type_list.push(type_name.clone());
         for current_effectiveness_map in self.type_map.values_mut() {
             current_effectiveness_map.insert(type_name.clone(), "?".to_string());
@@ -74,5 +79,68 @@ impl TypeChart {
         }
         effectiveness_map.insert(opposing_type_name.clone(), effectiveness.clone());
         println!("{} type attacks are now {} against {}", type_name, &effectiveness, opposing_type_name);
+    }
+
+    pub fn get_attacking_effectiveness(&mut self, type_name: &String) -> Result<HashMap<String, Vec<String>>, ()> {
+        let effectiveness_map = match self.type_map.get(type_name) {
+            None => {
+                eprintln!("Type {} doesn't exist!", type_name);
+                return Err(());
+            }
+            Some(effectiveness_map) => effectiveness_map,
+        };
+        let mut reverse_effectiveness_map: HashMap<String, Vec<String>> = HashMap::new();
+        for effectiveness in vec!["Immune", "Not Very Effective", "Neutral", "Super Effective"] {
+            reverse_effectiveness_map.insert(effectiveness.to_string(), Vec::new());
+        }
+        for (opposing_type, effectiveness) in effectiveness_map {
+            if effectiveness == "?" {
+                continue;
+            }
+            let type_list = match reverse_effectiveness_map.get_mut(effectiveness) {
+                None => {
+                    // Should not happen, unless we read a file with wrong effectivenesses
+                    eprintln!("Effectiveness {} doesn't exist", effectiveness);
+                    return Err(());
+                },
+                Some(type_list) => type_list,
+            };
+            type_list.push(opposing_type.clone());
+        }
+        return Ok(reverse_effectiveness_map);
+    }
+
+    pub fn get_defensive_effectiveness(&mut self, type_name: &String) -> Result<HashMap<String, Vec<String>>, ()> {
+        if !self.type_list.contains(type_name) {
+            eprintln!("Type {} isn't in the type chart", type_name);
+            return Err(());
+        }
+        let mut reverse_effectiveness_map: HashMap<String, Vec<String>> = HashMap::new();
+        for effectiveness in vec!["Immune", "Not Very Effective", "Neutral", "Super Effective"] {
+            reverse_effectiveness_map.insert(effectiveness.to_string(), Vec::new());
+        }
+        for (opposing_type, effectiveness_map) in &self.type_map {
+            let effectiveness = match effectiveness_map.get(type_name) {
+                None => {
+                    // Should not happen, since we checked before that the type exists
+                    eprintln!("Type {} doesn't have an effectiveness with {}", type_name, opposing_type);
+                    continue;
+                },
+                Some(effectiveness) => effectiveness,
+            };
+            if effectiveness == "?" {
+                continue;
+            }
+            let type_list = match reverse_effectiveness_map.get_mut(effectiveness) {
+                None => {
+                    // Should not happen, unless we read a file with wrong effectivenesses
+                    eprintln!("Effectiveness {} doesn't exist", effectiveness);
+                    return Err(());
+                },
+                Some(type_list) => type_list,
+            };
+            type_list.push(opposing_type.clone());
+        }
+        return Ok(reverse_effectiveness_map);
     }
 }
