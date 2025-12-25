@@ -1,5 +1,5 @@
 use clap::Parser;
-use std::io;
+use std::{io,collections::HashMap};
 
 mod files;
 mod type_chart;
@@ -112,6 +112,36 @@ fn end_program(type_chart: &TypeChart, filepath: &String) -> i32 {
     }
 }
 
+fn print_type_effectiveness_map(type_effectiveness_map: &HashMap<String, Vec<String>>, type_name: &String, attacking: bool) {
+    println!("{}", "=".repeat(101));
+    let attacking = match attacking {
+        true => "attacking",
+        false => "defending"
+    };
+    println!("{} when {} :", type_name.trim(), attacking);
+    for effectiveness in vec!["Immune", "Triple Not Very Effective", "Double Not Very Effective", "Not Very Effective", "Super Effective", "Double Super Effective", "Triple Super Effective"] {
+        let type_list = match type_effectiveness_map.get(effectiveness) {
+            None => {
+                // Ignore it
+                continue;
+            },
+            Some(type_list) => type_list,
+        };
+        if type_list.is_empty() {
+            continue;
+        }
+        let dash_length = 50 - (effectiveness.len() / 2);
+        let dashes = "-".repeat(dash_length);
+        print!("{}{}{}", &dashes, effectiveness, &dashes);
+        if effectiveness.len() % 2 == 0 {
+            print!("-");
+        }
+        println!();
+        display_type_list(type_list);
+    }
+    println!("{}", "=".repeat(101));
+}
+
 fn process_user_input(type_chart: &mut TypeChart, trimed_user_input: &str, filepath: &String) -> Result<bool, i32> {
     match trimed_user_input {
         "1" => {
@@ -133,41 +163,50 @@ fn process_user_input(type_chart: &mut TypeChart, trimed_user_input: &str, filep
         }
         "4" => {
             let type_name = get_info_from_user("For what type would you like to see it's type chart?", type_chart, filepath)?;
-            let attacking_type_effectiveness_map = match type_chart.get_attacking_effectiveness(&type_name.trim().to_string()){
+            let attacking_type_effectiveness_map = match type_chart.get_attacking_effectiveness(&type_name.trim().to_string()) {
                 Err(_) => return Ok(false),
                 Ok(attacking_type_effectiveness_map) => attacking_type_effectiveness_map,
             };
-            let defensing_type_effectiveness_map = match type_chart.get_defensive_effectiveness(&type_name.trim().to_string()){
+            let defensing_type_effectiveness_map = match type_chart.get_defensive_effectiveness(&type_name.trim().to_string()) {
                 Err(_) => return Ok(false),
                 Ok(defensing_type_effectiveness_map) => defensing_type_effectiveness_map,
             };
-            println!("{}", "=".repeat(101));
-            println!("{} when attacking :", type_name.trim());
-            for (effectiveness, type_list) in attacking_type_effectiveness_map {
-                let dash_length = 50 - (effectiveness.len() / 2);
-                let dashes = "-".repeat(dash_length);
-                print!("{}{}{}", &dashes, effectiveness, &dashes);
-                if effectiveness.len() % 2 == 0 {
-                    print!("-");
-                }
-                println!();
-                display_type_list(&type_list);
-            }
-            println!("{}", "=".repeat(101));
-            println!("{} when defending :", type_name.trim());
-            for (effectiveness, type_list) in defensing_type_effectiveness_map {
-                let dash_length = 50 - (effectiveness.len() / 2);
-                let dashes = "-".repeat(dash_length);
-                print!("{}{}{}", &dashes, effectiveness, &dashes);
-                if effectiveness.len() % 2 == 0 {
-                    print!("-");
-                }
-                println!();
-                display_type_list(&type_list);
-            }
-            println!("{}", "=".repeat(101));
+            print_type_effectiveness_map(&attacking_type_effectiveness_map, &type_name, true);
+            print_type_effectiveness_map(&defensing_type_effectiveness_map, &type_name, false);
         }
-        "5" | "quit" | "Quit" => {
+        "5" => {
+            let mut first_type_name = get_info_from_user("What is the first type?", type_chart, filepath)?.trim().to_string();
+            let second_type_name = match get_info_from_user("What is the second type? (write none for only 1 type)", type_chart, filepath)?.trim() {
+                "none" => None,
+                second_type_name => Some(&second_type_name.trim().to_string()),
+            };
+            let third_type_name = if second_type_name.is_some() {
+                let third_type_name = get_info_from_user("What is the third type? (write none for only 2 type)", type_chart, filepath)?;
+                match third_type_name.trim() {
+                    "none" => None,
+                    third_type_name => Some(&third_type_name.trim().to_string()),
+                }
+            } else {
+                None
+            };
+            let type_effectiveness_map = match type_chart.get_multiple_defensive_effectiveness(&first_type_name, second_type_name, third_type_name) {
+                Err(_) => return Ok(false),
+                Ok(type_effectiveness_map) => type_effectiveness_map,
+            };
+
+            // Combining all type names together
+            if let Some(second_type_name) = second_type_name {
+                first_type_name.push_str(", ");
+                first_type_name.push_str(second_type_name.as_str());
+                if let Some(third_type_name) = third_type_name {
+                    first_type_name.push_str(", ");
+                    first_type_name.push_str(third_type_name.as_str());
+                }
+            }
+
+            print_type_effectiveness_map(&type_effectiveness_map, &first_type_name, false);
+        },
+        "6" | "quit" | "Quit" => {
             return Ok(true);
         },
         _ => {
@@ -188,12 +227,14 @@ fn main() -> Result<(), i32> {
     println!("Welcome to the TMT2 Type Track!");
     while !quit {
         // Show user the available options
+        // TODO: add an option to stop the command at any point and return to this
         println!("What would you like to do?");
         println!("1: Add a new type");
         println!("2: Remove an existing type");
         println!("3: Add a new weakness/resistance");
         println!("4: See stats about a type");
-        println!("5: Quit");
+        println!("5: See stats about multiple types");
+        println!("6: Quit");
         println!("(At any point you can write \"quit\" to quit out of the program)");
 
         // Take user input

@@ -1,5 +1,8 @@
 use std::collections::HashMap;
 
+// TODO: change representation of effectiveness from String to float.
+// e.g., Neutral = 1, SE = 2, Immune = 0
+// Allows for multiplication between types
 pub type TypeMap = HashMap<String, HashMap<String, String>>;
 
 #[derive(Debug)]
@@ -141,6 +144,100 @@ impl TypeChart {
             };
             type_list.push(opposing_type.clone());
         }
+        return Ok(reverse_effectiveness_map);
+    }
+    pub fn get_multiple_defensive_effectiveness(&mut self, first_type_name: &String, second_type_name: Option<&String>, third_type_name: Option<&String>) -> Result<HashMap<String, Vec<String>>, ()> {
+        // First check that all types are in the type list
+        if !self.type_list.contains(first_type_name) {
+            eprintln!("Type {} isn't in the type chart", first_type_name);
+            return Err(());
+        }
+        if let Some(second_type_name) = second_type_name {
+            if !self.type_list.contains(second_type_name) {
+                eprintln!("Type {} isn't in the type chart", second_type_name);
+                return Err(());
+            }
+        }
+        if let Some(third_type_name) = third_type_name {
+            if !self.type_list.contains(third_type_name) {
+                eprintln!("Type {} isn't in the type chart", third_type_name);
+                return Err(());
+            }
+        }
+        let mut reverse_effectiveness_map: HashMap<String, Vec<String>> = HashMap::new();
+        for effectiveness in vec!["Immune", "Triple Not Very Effective", "Double Not Very Effective", "Not Very Effective", "Neutral", "Super Effective", "Double Super Effective", "Triple Super Effective"] {
+            reverse_effectiveness_map.insert(effectiveness.to_string(), Vec::new());
+        }
+        for (opposing_type, effectiveness_map) in &self.type_map {
+            let mut combined_effectiveness = match effectiveness_map.get(first_type_name) {
+                None => {
+                    // Should not happen, since we checked before that the type exists
+                    eprintln!("Type {} doesn't have an effectiveness with {}", first_type_name, opposing_type);
+                    continue;
+                },
+                Some(effectiveness) => effectiveness.as_str(),
+            };
+            if combined_effectiveness == "?" {
+                continue;
+            }
+            if let Some(second_type_name) = second_type_name {
+                let second_effectiveness = match effectiveness_map.get(second_type_name) {
+                    None => {
+                        // Should not happen, since we checked before that the type exists
+                        eprintln!("Type {} doesn't have an effectiveness with {}", second_type_name, opposing_type);
+                        continue;
+                    },
+                    Some(effectiveness) => effectiveness,
+                };
+                if second_effectiveness == "?" {
+                    continue;
+                }
+                combined_effectiveness = match (second_effectiveness.as_str(), combined_effectiveness) {
+                    ("?", _) | (_, "?") => "?",
+                    ("Immune", _) | (_, "Immune") => "Immune",
+                    ("Not Very Effective", "Not Very Effective") => "Double Not Very Effective",
+                    ("Not Very Effective", "Neutral") | ("Neutral", "Not Very Effective") => "Not Very Effective",
+                    ("Not Very Effective", "Super Effective") | ("Neutral", "Neutral") | ("Super Effective", "Not Very Effective") => "Neutral",
+                    ("Neutral", "Super Effective") | ("Super Effective", "Neutral") => "Super Effective",
+                    ("Super Effective", "Super Effective") => &"Double Super Effective",
+                    _ => "Should Not Happen",
+                };
+            }
+            if let Some(third_type_name) = third_type_name {
+                let third_effectiveness = match effectiveness_map.get(third_type_name) {
+                    None => {
+                        // Should not happen, since we checked before that the type exists
+                        eprintln!("Type {} doesn't have an effectiveness with {}", third_type_name, opposing_type);
+                        continue;
+                    },
+                    Some(effectiveness) => effectiveness,
+                };
+                if third_effectiveness == "?" {
+                    continue;
+                }
+                combined_effectiveness = match (third_effectiveness.as_str(), combined_effectiveness) {
+                    ("?", _) | (_, "?") => "?",
+                    ("Immune", _) | (_, "Immune") => "Immune",
+                    ("Not Very Effective", "Double Not Very Effective") => "Triple Not Very Effective",
+                    ("Not Very Effective", "Not Very Effective") | ("Neutral", "Double Not Very Effective") => "Double Not Very Effective",
+                    ("Not Very Effective", "Neutral") | ("Neutral", "Not Very Effective") | ("Super Effective", "Double Not Very Effective") => "Not Very Effective",
+                    ("Not Very Effective", "Super Effective") | ("Neutral", "Neutral") | ("Super Effective", "Not Very Effective") => "Neutral",
+                    ("Neutral", "Super Effective") | ("Super Effective", "Neutral") | ("Not Very Effective", "Double Super Effective") => "Super Effective",
+                    ("Super Effective", "Super Effective") | ("Neutral", "Double Super Effective") => "Double Super Effective",
+                    ("Super Effective", "Double Super Effective") => "Triple Super Effective",
+                    _ => "Should Not Happen",
+                };
+            }
+            match reverse_effectiveness_map.get_mut(combined_effectiveness) {
+                None => {
+                    // Should not happen, unless we read a file with wrong effectivenesses
+                    eprintln!("Effectiveness {} doesn't exist", combined_effectiveness);
+                    return Err(());
+                },
+                Some(type_list) => type_list.push(opposing_type.clone()),
+            }
+        }
+        
         return Ok(reverse_effectiveness_map);
     }
 }
