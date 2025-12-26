@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::type_chart::{TypeChart, TypeMap};
+use crate::type_chart::{TypeChart, TypeMap, effectiveness_f32_to_string, effectiveness_string_to_f32};
 
 pub fn get_types_from_file(filepath: &String) -> Result<TypeChart, ()> {
     // Maybe should handle empty file? => return empty typechart
@@ -70,16 +70,13 @@ pub fn get_types_from_file(filepath: &String) -> Result<TypeChart, ()> {
                     },
                     Some(opposing_type) => opposing_type,
                 };
-                let effectiveness_value: f32 = match effectiveness.trim() {
-                    "Immune" => 0.,
-                    "Not Very Effective" => 0.5,
-                    "Neutral" => 1.,
-                    "Super Effective" => 2.,
-                    _ => {
+                let effectiveness_value: f32 = match effectiveness_string_to_f32(&effectiveness.to_string()) {
+                    Err(_) => {
                         // Can only happen if the file contains incorrect effectivenesses
                         eprintln!("Error while trying to load file : Effectiveness {} doesn't exist", effectiveness);
                         return Err(());
-                    }
+                    },
+                    Ok(effectiveness_value) => effectiveness_value,
                 };
                 type_matchups.insert(opposing_type.clone(), effectiveness_value);
                 line_index += 1;
@@ -137,16 +134,13 @@ pub fn save_types_to_file(type_chart: &TypeChart, filepath: &String) -> Result<(
                 Some(effectiveness) => effectiveness,
             };
             effectiveness_list.push(
-                match effectiveness {
-                    0. => "Immune",
-                    0.5 => "Not Very Effective",
-                    1. => "Neutral",
-                    2. => "Super Effective",
-                    _ => {
+                match effectiveness_f32_to_string(*effectiveness) {
+                    Err(_) => {
                         // Should never happen
                         eprintln!("Error while trying to save type chart to file: Effectiveness {} doesn't exist", effectiveness);
                         return Err(());
-                    }
+                    },
+                    Ok(effectiveness_string) => effectiveness_string,
                 }.to_string()
             );
         }
