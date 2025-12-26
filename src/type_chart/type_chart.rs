@@ -1,9 +1,6 @@
 use std::collections::HashMap;
 
-// TODO: change representation of effectiveness from String to float.
-// e.g., Neutral = 1, SE = 2, Immune = 0
-// Allows for multiplication between types
-pub type TypeMap = HashMap<String, HashMap<String, String>>;
+pub type TypeMap = HashMap<String, HashMap<String, f32>>;
 
 #[derive(Debug)]
 pub struct TypeChart {
@@ -40,11 +37,11 @@ impl TypeChart {
         }
         self.type_list.push(type_name.clone());
         for current_effectiveness_map in self.type_map.values_mut() {
-            current_effectiveness_map.insert(type_name.clone(), "?".to_string());
+            current_effectiveness_map.insert(type_name.clone(), -1.);
         }
         let mut new_effectiveness_map = HashMap::new();
         for current_type in &self.type_list {
-            new_effectiveness_map.insert(current_type.clone(), "?".to_string());
+            new_effectiveness_map.insert(current_type.clone(), -1.);
         }
         self.type_map.insert(type_name.clone(), new_effectiveness_map);
         println!("New type {} added", type_name);
@@ -68,6 +65,7 @@ impl TypeChart {
     }
 
     pub fn add_effectiveness(&mut self, type_name: &String, opposing_type_name: &String, effectiveness: String) {
+        let effectiveness_value = effectiveness_string_to_f32(&effectiveness).expect("Effectiveness doesn't exist");
         let effectiveness_map = match self.type_map.get_mut(type_name) {
             None => {
                 eprintln!("Type {} doesn't exist!", type_name);
@@ -80,7 +78,7 @@ impl TypeChart {
             eprintln!("Type {} doesn't exist!", opposing_type_name);
             return;
         }
-        effectiveness_map.insert(opposing_type_name.clone(), effectiveness.clone());
+        effectiveness_map.insert(opposing_type_name.clone(), effectiveness_value);
         println!("{} type attacks are now {} against {}", type_name, &effectiveness, opposing_type_name);
     }
 
@@ -97,10 +95,11 @@ impl TypeChart {
             reverse_effectiveness_map.insert(effectiveness.to_string(), Vec::new());
         }
         for (opposing_type, effectiveness) in effectiveness_map {
-            if effectiveness == "?" {
+            if effectiveness == &-1. {
                 continue;
             }
-            let type_list = match reverse_effectiveness_map.get_mut(effectiveness) {
+            let effectiveness_string = effectiveness_f32_to_string(*effectiveness).expect("Effectiveness doesn't exist").to_string();
+            let type_list = match reverse_effectiveness_map.get_mut(&effectiveness_string) {
                 None => {
                     // Should not happen, unless we read a file with wrong effectivenesses
                     eprintln!("Effectiveness {} doesn't exist", effectiveness);
@@ -131,10 +130,11 @@ impl TypeChart {
                 },
                 Some(effectiveness) => effectiveness,
             };
-            if effectiveness == "?" {
+            if effectiveness == &-1. {
                 continue;
             }
-            let type_list = match reverse_effectiveness_map.get_mut(effectiveness) {
+            let effectiveness_string = effectiveness_f32_to_string(*effectiveness).expect("Effectiveness doesn't exist").to_string();
+            let type_list = match reverse_effectiveness_map.get_mut(&effectiveness_string) {
                 None => {
                     // Should not happen, unless we read a file with wrong effectivenesses
                     eprintln!("Effectiveness {} doesn't exist", effectiveness);
@@ -175,9 +175,9 @@ impl TypeChart {
                     eprintln!("Type {} doesn't have an effectiveness with {}", first_type_name, opposing_type);
                     continue;
                 },
-                Some(effectiveness) => effectiveness.as_str(),
+                Some(effectiveness) => *effectiveness,
             };
-            if combined_effectiveness == "?" {
+            if combined_effectiveness == -1. {
                 continue;
             }
             if let Some(second_type_name) = second_type_name {
@@ -187,21 +187,12 @@ impl TypeChart {
                         eprintln!("Type {} doesn't have an effectiveness with {}", second_type_name, opposing_type);
                         continue;
                     },
-                    Some(effectiveness) => effectiveness,
+                    Some(effectiveness) => *effectiveness,
                 };
-                if second_effectiveness == "?" {
+                if second_effectiveness == -1. {
                     continue;
                 }
-                combined_effectiveness = match (second_effectiveness.as_str(), combined_effectiveness) {
-                    ("?", _) | (_, "?") => "?",
-                    ("Immune", _) | (_, "Immune") => "Immune",
-                    ("Not Very Effective", "Not Very Effective") => "Double Not Very Effective",
-                    ("Not Very Effective", "Neutral") | ("Neutral", "Not Very Effective") => "Not Very Effective",
-                    ("Not Very Effective", "Super Effective") | ("Neutral", "Neutral") | ("Super Effective", "Not Very Effective") => "Neutral",
-                    ("Neutral", "Super Effective") | ("Super Effective", "Neutral") => "Super Effective",
-                    ("Super Effective", "Super Effective") => &"Double Super Effective",
-                    _ => "Should Not Happen",
-                };
+                combined_effectiveness *= second_effectiveness;
             }
             if let Some(third_type_name) = third_type_name {
                 let third_effectiveness = match effectiveness_map.get(third_type_name) {
@@ -210,25 +201,15 @@ impl TypeChart {
                         eprintln!("Type {} doesn't have an effectiveness with {}", third_type_name, opposing_type);
                         continue;
                     },
-                    Some(effectiveness) => effectiveness,
+                    Some(effectiveness) => *effectiveness,
                 };
-                if third_effectiveness == "?" {
+                if third_effectiveness == -1. {
                     continue;
                 }
-                combined_effectiveness = match (third_effectiveness.as_str(), combined_effectiveness) {
-                    ("?", _) | (_, "?") => "?",
-                    ("Immune", _) | (_, "Immune") => "Immune",
-                    ("Not Very Effective", "Double Not Very Effective") => "Triple Not Very Effective",
-                    ("Not Very Effective", "Not Very Effective") | ("Neutral", "Double Not Very Effective") => "Double Not Very Effective",
-                    ("Not Very Effective", "Neutral") | ("Neutral", "Not Very Effective") | ("Super Effective", "Double Not Very Effective") => "Not Very Effective",
-                    ("Not Very Effective", "Super Effective") | ("Neutral", "Neutral") | ("Super Effective", "Not Very Effective") => "Neutral",
-                    ("Neutral", "Super Effective") | ("Super Effective", "Neutral") | ("Not Very Effective", "Double Super Effective") => "Super Effective",
-                    ("Super Effective", "Super Effective") | ("Neutral", "Double Super Effective") => "Double Super Effective",
-                    ("Super Effective", "Double Super Effective") => "Triple Super Effective",
-                    _ => "Should Not Happen",
-                };
+                combined_effectiveness *= third_effectiveness;
             }
-            match reverse_effectiveness_map.get_mut(combined_effectiveness) {
+            let effectiveness_string = effectiveness_f32_to_string(combined_effectiveness).expect("Effectiveness doesn't exist");
+            match reverse_effectiveness_map.get_mut(effectiveness_string) {
                 None => {
                     // Should not happen, unless we read a file with wrong effectivenesses
                     eprintln!("Effectiveness {} doesn't exist", combined_effectiveness);
@@ -239,5 +220,35 @@ impl TypeChart {
         }
         
         return Ok(reverse_effectiveness_map);
+    }
+}
+
+pub fn effectiveness_string_to_f32(effectiveness: &String) -> Result<f32, ()> {
+    match effectiveness.as_str() {
+        "Immune" => Ok(0.),
+        "Triple Not Very Effective" => Ok(0.125),
+        "Double Not Very Effective" => Ok(0.25),
+        "Not Very Effective" => Ok(0.5),
+        "Neutral" => Ok(1.),
+        "Super Effective" => Ok(2.),
+        "Double Super Effective" => Ok(4.),
+        "Tripel Super Effective" => Ok(8.),
+        "?" => Ok(-1.), // Not sure how to represent this yet
+        _ => Err(())
+    }
+}
+
+pub fn effectiveness_f32_to_string(effectiveness: f32) -> Result<&'static str, ()> {
+    match effectiveness {
+        0. => Ok("Immune"),
+        0.125 => Ok("Triple Not Very Effective"),
+        0.25 => Ok("Double Not Very Effective"),
+        0.5 => Ok("Not Very Effective"),
+        1. => Ok("Neutral"),
+        2. => Ok("Super Effective"),
+        4. => Ok("Double Super Effective"),
+        8. => Ok("Triple Super Effective"),
+        -1. => Ok("?"),
+        _ => Err(()),
     }
 }

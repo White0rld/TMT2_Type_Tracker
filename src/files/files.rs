@@ -45,7 +45,7 @@ pub fn get_types_from_file(filepath: &String) -> Result<TypeChart, ()> {
             let current_type = match type_list.get(index - 1) {
                 None => {
                     // Can only happen if there are more lines than types
-                    eprintln!("There are more lines than types in the file");
+                    eprintln!("Error while trying to load file : There are more lines than types");
                     return Err(());
                 },
                 Some(current_type) => current_type,
@@ -65,12 +65,23 @@ pub fn get_types_from_file(filepath: &String) -> Result<TypeChart, ()> {
                 let opposing_type = match type_list.get(line_index) {
                     None => {
                         // Can only happen if there are more lines than types
-                        eprintln!("There are more lines than types in the file");
+                        eprintln!("Error while trying to load file : There are more lines than types");
                         return Err(());
                     },
                     Some(opposing_type) => opposing_type,
                 };
-                type_matchups.insert(opposing_type.clone(), effectiveness.trim().to_string());
+                let effectiveness_value: f32 = match effectiveness.trim() {
+                    "Immune" => 0.,
+                    "Not Very Effective" => 0.5,
+                    "Neutral" => 1.,
+                    "Super Effective" => 2.,
+                    _ => {
+                        // Can only happen if the file contains incorrect effectivenesses
+                        eprintln!("Error while trying to load file : Effectiveness {} doesn't exist", effectiveness);
+                        return Err(());
+                    }
+                };
+                type_matchups.insert(opposing_type.clone(), effectiveness_value);
                 line_index += 1;
             }
         }
@@ -125,7 +136,19 @@ pub fn save_types_to_file(type_chart: &TypeChart, filepath: &String) -> Result<(
                 },
                 Some(effectiveness) => effectiveness,
             };
-            effectiveness_list.push(effectiveness.clone());
+            effectiveness_list.push(
+                match effectiveness {
+                    0. => "Immune",
+                    0.5 => "Not Very Effective",
+                    1. => "Neutral",
+                    2. => "Super Effective",
+                    _ => {
+                        // Should never happen
+                        eprintln!("Error while trying to save type chart to file: Effectiveness {} doesn't exist", effectiveness);
+                        return Err(());
+                    }
+                }.to_string()
+            );
         }
         if let Err(err) = file_writer.write_record(&effectiveness_list) {
             eprintln!("Error while trying to write the effectiveness of type {}", current_type);
