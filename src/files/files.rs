@@ -134,7 +134,7 @@ pub fn save_types_to_file(type_chart: &TypeChart, filepath: &String) -> Result<(
                 Some(effectiveness) => effectiveness,
             };
             effectiveness_list.push(
-                match effectiveness_f32_to_string(*effectiveness) {
+                match effectiveness_f32_to_string(*effectiveness, 0) {
                     Err(_) => {
                         // Should never happen
                         eprintln!("Error while trying to save type chart to file: Effectiveness {} doesn't exist", effectiveness);

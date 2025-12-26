@@ -4,7 +4,7 @@ use std::{io,collections::HashMap};
 mod files;
 mod type_chart;
 
-use type_chart::TypeChart;
+use type_chart::{TypeChart, ALL_POSSIBLE_EFFECTIVENESSES};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -23,7 +23,7 @@ fn get_info_from_user(display_string: &str, type_chart: &TypeChart, filepath: &S
                 eprintln!("{}", err);
                 return Err(1);
             }
-            Ok(input_len) => input_len,
+            Ok(_) => (),
         };
         if &user_input.trim().to_lowercase() == "quit" {
             return Err(end_program(&type_chart, filepath));
@@ -48,7 +48,7 @@ fn get_effectiveness_from_user(display_string: &str, type_chart: &TypeChart, fil
                 eprintln!("{}", err);
                 return Err(1);
             }
-            Ok(input_len) => input_len,
+            Ok(_) => (),
         };
         match user_input.trim() {
             "1" | "SE" => return Ok("Super Effective".to_string()),
@@ -60,6 +60,30 @@ fn get_effectiveness_from_user(display_string: &str, type_chart: &TypeChart, fil
             _ => println!("That is not a valid effectiveness")
         }
         user_input.clear();
+    }
+}
+
+fn get_bool_from_user(display_string: &str, type_chart: &TypeChart, filepath: &String) -> Result<bool, i32> {
+let stdin = io::stdin();
+    let mut user_input = String::new();
+    loop {
+        println!("{}", display_string);
+        let _ = match stdin.read_line(&mut user_input) {
+            Err(err) => {
+                eprintln!("{}", err);
+                return Err(1);
+            }
+            Ok(_) => (),
+        };
+        match user_input.trim().to_lowercase().as_str() {
+            "quit" => return Err(end_program(&type_chart, filepath)),
+            "true" | "yes" | "y" => return Ok(true),
+            "false" | "no" | "n" => return Ok(false),
+            _ => {
+                println!("Incorrect option (y/n)");
+                continue;
+            }
+        }
     }
 }
 
@@ -112,14 +136,20 @@ fn end_program(type_chart: &TypeChart, filepath: &String) -> i32 {
     }
 }
 
-fn print_type_effectiveness_map(type_effectiveness_map: &HashMap<String, Vec<String>>, type_name: &String, attacking: bool) {
+fn print_type_effectiveness_map(type_effectiveness_map: &HashMap<String, Vec<String>>, type_name: &String, attacking: bool, show_neutral: bool, show_unsure: bool) {
     println!("{}", "=".repeat(101));
     let attacking = match attacking {
         true => "attacking",
         false => "defending"
     };
     println!("{} when {} :", type_name.trim(), attacking);
-    for effectiveness in vec!["Immune", "Triple Not Very Effective", "Double Not Very Effective", "Not Very Effective", "Super Effective", "Double Super Effective", "Triple Super Effective"] {
+    for effectiveness in ALL_POSSIBLE_EFFECTIVENESSES {
+        if effectiveness == "Neutral" && !show_neutral {
+            continue;
+        }
+        if effectiveness.contains('?') && !show_unsure {
+            continue;
+        }
         let type_list = match type_effectiveness_map.get(effectiveness) {
             None => {
                 // Ignore it
@@ -171,8 +201,9 @@ fn process_user_input(type_chart: &mut TypeChart, trimed_user_input: &str, filep
                 Err(_) => return Ok(false),
                 Ok(defensing_type_effectiveness_map) => defensing_type_effectiveness_map,
             };
-            print_type_effectiveness_map(&attacking_type_effectiveness_map, &type_name, true);
-            print_type_effectiveness_map(&defensing_type_effectiveness_map, &type_name, false);
+            let show_neutral = get_bool_from_user("Do you want Neutral to be shown?", type_chart, filepath)?;
+            print_type_effectiveness_map(&attacking_type_effectiveness_map, &type_name, true, show_neutral, false);
+            print_type_effectiveness_map(&defensing_type_effectiveness_map, &type_name, false, show_neutral, false);
         }
         "5" => {
             let mut first_type_name = get_info_from_user("What is the first type?", type_chart, filepath)?.trim().to_string();
@@ -203,8 +234,9 @@ fn process_user_input(type_chart: &mut TypeChart, trimed_user_input: &str, filep
                     first_type_name.push_str(third_type_name.as_str());
                 }
             }
-
-            print_type_effectiveness_map(&type_effectiveness_map, &first_type_name, false);
+            let show_neutral = get_bool_from_user("Do you want Neutral to be shown?", type_chart, filepath)?;
+            let show_unsure = get_bool_from_user("Do you want unsure effectivenesses to be shown?", type_chart, filepath)?;
+            print_type_effectiveness_map(&type_effectiveness_map, &first_type_name, false, show_neutral, show_unsure);
         },
         "6" | "quit" | "Quit" => {
             return Ok(true);
