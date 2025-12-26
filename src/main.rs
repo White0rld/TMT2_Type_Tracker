@@ -81,6 +81,7 @@ let stdin = io::stdin();
             "false" | "no" | "n" => return Ok(false),
             _ => {
                 println!("Incorrect option (y/n)");
+                user_input.clear();
                 continue;
             }
         }
